@@ -23,32 +23,36 @@ app.get("/api/hello", function (req, res) {
   res.json({ greeting: "hello API" });
 });
 
-app.get("/api/:date?", (req, res) => {
-  const date = req.params.date;
-  // res.json({date: date})
-  const unix = new Date(date).getTime();
-  const utc = new Date(date).toUTCString();
-  if (unix) {
-    res.json({ unix: unix, utc: utc });
-  } else if (utc) {
-    res.json({ unix: Date.parse(utc), utc: utc });
+app.get("/api/:date_string?", (req, res) => {
+  const { date_string } = req.params;
+
+  if (!date_string) {
+    // If date_string is empty, return the current time
+    const currentDate = new Date();
+    return res.json({
+      unix: currentDate.getTime(),
+      utc: currentDate.toUTCString(),
+    });
+  }
+
+  let date = new Date(date_string);
+
+  if (date.toString() === "Invalid Date") {
+    date = new Date(parseInt(date_string));
+  }
+
+  if (date.toString() === "Invalid Date") {
+    return res.json({
+      error: "Invalid Date",
+    });
   } else {
-    res.json({ error: "Invalid Date" });
+    return res.json({
+      unix: date.getTime(),
+      utc: date.toUTCString(),
+    });
   }
 });
 
-app.get("/api/:timestamp?", (req, res) => {
-  const timestamp_ = parseInt(req.params.timestamp);
-  res.json({timestamp: timestamp});
-  // const timestampNumber = +timestamp; // or parseInt(timestamp, 10);
-
-  // if (!isNaN(timestampNumber)) {
-  //   const utc = new Date(timestampNumber).toUTCString();
-  //   res.json({ unix: timestampNumber, utc: utc });
-  // } else {
-  //   res.json({ error: "Invalid Date" });
-  // }
-});
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
